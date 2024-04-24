@@ -1,0 +1,9 @@
+pip install flask
+pip install openai
+pip install snowflake
+pip install chat2plot
+pip install -U spacy
+
+# for predibase
+pip install -U predibase
+pip install datasets

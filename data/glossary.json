@@ -1,0 +1,12 @@
+{
+    "securities": ["tickers"],
+    "sectors": ["gics sectors"],
+    "tracking error": ["active risk"],
+    "user": ["users refer to the data in ACCT in table POSITIONS_AND_BENCHMARK"],
+    "lowest level factors": ["In table FACTORS, while calculating lowest level factors present in RISK_SOURCE, consider lowest level factors related to 'Common Factor Risk' in FACTOR_PARENT"],
+    "details": ["for generating details of a specific ACCT use all table schemas and foreign key relationship"],
+    "personal contribution" : ["it is the active specific contribution in the table positions and benchmark"],
+    "account B": ["consider the ACCT name as dummy_acct_B"],
+    "account A": ["consider the ACCT name as dummy_acct_A"],
+    "last n months" : ["n is any number here. retrieve the current date, use to to get the current month, calculate the date for month-n months back call it start date, then use the range between the  start date and current date"]
+}

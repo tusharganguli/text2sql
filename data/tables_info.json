@@ -1,0 +1,205 @@
+{
+    "tables": [
+        {
+            "name": "instruments",
+            "instruction": [
+                "This table contains information about financial instruments.",
+                "these are the instruments held in positions vs benchmark."
+            ],
+            "columns": [
+                {
+                    "INSTRUMENT_ID": "A unique identifier for each instrument."
+                },
+                {
+                    "ASSET_NAME": "The name or description of the asset."
+                },
+                {
+                    "ISSUER": "The entity or organization that issued the instrument."
+                },
+                {
+                    "INSTRUMENT_TYPE": "The type or category of the instrument (e.g., stock, bond, derivative)."
+                }
+            ]
+        },
+        {
+            "name": "factors",
+            "instruction": [
+                "This table contains factor risk metrics for various portfolios."
+            ],
+            "columns": [
+                {
+                    "AS_OF_DATE": "date and time when factors are evaluated or measured. It is a snowflake TIMESTAMP_NTZ format yyyy-MM-dd HH:mm:ss."
+                },
+                {
+                    "ACCT": "The account identifier associated with the factors."
+                },
+                {
+                    "BENCHMARK": "The benchmark identifier for comparison."
+                },
+                {
+                    "FACTOR_PARENT": "A parent factor or category to which other factors belong."
+                },
+                {
+                    "ISTOTALROW": "A boolean indicating whether the row represents total values."
+                },
+                {
+                    "RISK_SOURCE": "The source or origin of the risk factors. Contains the sub factors of the parent factors."
+                },
+                {
+                    "PORTFOLIO_RISK": "The risk measure for the entire portfolio."
+                },
+                {
+                    "PCT_PORTFOLIO_RISK": "The percentage of portfolio risk."
+                },
+                {
+                    "BENCHMARK_RISK": "The risk measure for the benchmark."
+                },
+                {
+                    "PCT_BENCHMARK_RISK": "The percentage of benchmark risk."
+                },
+                {
+                    "ACTIVE_RISK": "The active risk compared to the benchmark."
+                },
+                {
+                    "PCT_ACTIVE_RISK": "The percentage of active risk."
+                },
+                {
+                    "PORTFOLIO_RISK_CONTRIBUTION": "The contribution of the portfolio to overall risk."
+                },
+                {
+                    "ACTIVE_PORTFOLIO_RISK_CONTRIBUTION": "The contribution of active risk to overall portfolio risk."
+                },
+                {
+                    "PORTFOLIO_CORRELATION": "The correlation of the portfolio."
+                },
+                {
+                    "ACTIVE_PORTFOLIO_CORRELATION": "The correlation of active portfolio."
+                },
+                {
+                    "PORTFOLIO_VARIANCE": "The variance of the portfolio."
+                },
+                {
+                    "BENCHMARK_VARIANCE": "The variance of the benchmark."
+                },
+                {
+                    "ACTIVE_VARIANCE": "The active variance."
+                }
+            ]
+        },
+        {
+            "name": "POSITIONS_AND_BENCHMARK",
+            "instruction": [
+                "This table contains position and benchmark information.",
+                "This is the positions held on the account with also a reference to the benchmark.",
+                "If a position is in the benchmark but on held on the account the position is 'NOT Held'"
+            ],
+            "columns": [
+                {
+                    "AS_OF_DATE": "Date and time when positions and benchmarks are evaluated. It is a snowflake TIMESTAMP_NTZ format yyyy-MM-dd HH:mm:ss."
+                },
+                {
+                    "ACCT": "The account identifier associated with positions and benchmarks."
+                },
+                {
+                    "BENCHMARK": "The benchmark identifier."
+                },
+                {
+                    "INSTRUMENT_ID": "The unique identifier of the instrument."
+                },
+                {
+                    "ACTIVE_CORRELATION": "The correlation of active positions."
+                },
+                {
+                    "ACTIVE_COMMODITY_CONTRIBUTION": "The contribution of commodities to active positions."
+                },
+                {
+                    "ACTIVE_COUNTRY_CONTRIBUTION": "The contribution of countries to active positions."
+                },
+                {
+                    "ACTIVE_CURRENCY_RISK_CONTRIBUTION": "The contribution of currency risks to active positions."
+                },
+                {
+                    "ACTIVE_EMERGING_MARKET_CONTRIBUTION": "The contribution of emerging markets to active positions."
+                },
+                {
+                    "ACTIVE_HEDGE_FUND_CONTRIBUTION": "The contribution of hedge funds to active positions."
+                },
+                {
+                    "ACTIVE_INDUSTRY_CONTRIBUTION": "The contribution of industries to active positions."
+                },
+                {
+                    "ACTIVE_MKT_TIMING_RISK_CONTRIBUTION": "The contribution of market timing risks to active positions."
+                },
+                {
+                    "ACTIVE_SPECIFIC_CONTRIBUTION": "The contribution of specific factors to active positions."
+                },
+                {
+                    "ACTIVE_SPREAD_CONTRIBUTION": "The contribution of spread factors to active positions."
+                },
+                {
+                    "ACTIVE_STYLE_CONTRIBUTION": "The contribution of styles to active positions."
+                },
+                {
+                    "ACTIVE_TERM_STRUCTURE_CONTRIBUTION": "The contribution of term structures to active positions."
+                },
+                {
+                    "ACTIVE_WORLD_CONTRIBUTION": "The contribution of world factors to active positions."
+                },
+                {
+                    "ACTIVE_RISK_CONTRIBUTION": "The contribution of active risk to positions."
+                },
+                {
+                    "PORT_RISK_CONTRIBUTION": "The contribution of portfolio risk to positions."
+                },
+                {
+                    "ACTIVE_RESI_EFF_WGT_PCT": "The effective weight percentage of active positions."
+                },
+                {
+                    "ACTIVE_TOTAL_RISK": "The total risk of active positions."
+                },
+                {
+                    "MC_TO_ACTIVE_TOTAL_RISK": "The Monte Carlo simulation to total active risk."
+                },
+                {
+                    "MC_TO_TOTAL_TRACKING_ERROR": "The Monte Carlo simulation to total tracking error."
+                },
+                {
+                    "PCT_CR_TO_ACTIVE_LOCAL_MKT_RISK": "The percentage contribution of local market risks to active risk."
+                },
+                {
+                    "PCT_CR_TO_ACTIVE_TOTAL_RISK": "The percentage contribution of total risks to active risk."
+                },
+                {
+                    "PCT_CR_TO_TOTAL_TRACKING_ERROR": "The percentage contribution of total tracking error to total risk."
+                },
+                {
+                    "BETA_BMK": "The beta value compared to the benchmark."
+                },
+                {
+                    "CORRELATION": "The correlation value."
+                },
+                {
+                    "MC_TO_TOTAL_RISK": "The Monte Carlo simulation to total risk."
+                },
+                {
+                    "PCT_CR_TO_TOTAL_RISK": "The percentage contribution of total risks to total risk."
+                },
+                {
+                    "TOTAL_RISK": "The total risk."
+                },
+                {
+                    "ACTIVE_WEIGHT_PCT": "The weight percentage of active positions."
+                },
+                {
+                    "BMK_WEIGHT_PCT": "The benchmark weight percentage."
+                },
+                {
+                    "EFF_ACTIVE_WGT_PCT": "The effective weight percentage of active positions."
+                },
+                {
+                    "EFF_BMK_WGT_PCT": "The effective benchmark weight"
+                }
+            ]
+        }
+    ]
+}

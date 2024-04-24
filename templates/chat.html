@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dataworkz Conversationz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        .comfortaa-font {
+            margin-top: 12px;
+            font-family: "Comfortaa", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: bolder;
+            font-style: normal;
+            font-size: 32px;
+            color: #4e4d4d;
+        }
+
+        .chat-container {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 650px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow: auto;
+            height: 500px;
+        }
+
+        .message-input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .message-input input,
+        .message-input textarea {
+            flex-grow: 1;
+            /* Make the input take up remaining space */
+            margin-right: 10px;
+        }
+
+        .table {
+            max-height: 450px;
+        }
+
+        .table th,
+        .table td {
+            padding: 2px;
+            border: 1px solid #ccc;
+            text-align: left;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 2s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -25px;
+            margin-left: -25px;
+            z-index: 9999;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #chatbox {
+            width: 100%;
+            height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .userText {
+            background: #ececec;
+            padding: 5px;
+            margin: 5px 5px;
+            font-size: 14px;
+            word-wrap: break-word;
+
+        }
+
+        .form-control:focus {
+            border-color: rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(0, 0, 0, 0.15);
+        }
+
+        #textInput {
+            height: 80px;
+            width: 400px;
+            margin-right: 10px;
+            resize: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a href="https://www.dataworkz.com/" target="_blank"><img src="/static/cropped-dw_logo-1.png"
+                        alt="Dataworkz"></a>
+            </div>
+            <div class="comfortaa-font text-center">
+                <p>Conversationz</p>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h6 class="panel-title">Ready to have conversationz with your data!</h6>
+                    </div>
+                    <div class="panel-body chat-container">
+                        <div id="chatbox" class="chat-messages"></div>
+                        <div id="userInput" class="form-group message-input" style="display: flex;">
+                            <!-- <input id="textInput" type="text" class="form-control" placeholder="Message"
+                                style="width: calc(100% - 100px); margin-right: 10px;"> -->
+                            <textarea id="textInput" class="form-control" placeholder="Message"></textarea>
+                            <button id="sendButton" class="btn btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">SQL Query</h3>
+                    </div>
+                    <div class="panel-body">
+                        <textarea readonly class="form-control" rows="5" id="sql-query"></textarea>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Data</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive table" id="table-data">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Chart</h3>
+                    </div>
+                    <div class="panel-body" id="chart-container-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <script>
+        $(document).ready(function () {
+            // Call toggleSendButton function to initially disable the Send button
+            toggleSendButton();
+        });
+
+        // Function to enable/disable send button based on input value
+        function toggleSendButton() {
+            var textInputValue = $("#textInput").val().trim();
+            $("#sendButton").prop("disabled", textInputValue === "");
+        }
+
+        // Call toggleSendButton function on keyup event in the input box
+        $("#textInput").on("input", function () {
+            toggleSendButton();
+        });
+
+        function getBotResponse() {
+            // Show loader
+            $("#loader").show();
+
+            var rawText = $("#textInput").val();
+            update_chat_window(rawText)
+            document.getElementById("userInput").scrollIntoView({ block: "start", behavior: "smooth" });
+            chatbox.scrollTop = chatbox.scrollHeight;
+            console.log("before get, raw text:", rawText)
+            $.get("/chat", { msg: rawText }).done(
+                function (response) {
+                    console.log("Response length:", response.length)
+                    console.log("Response:", response)
+
+                    // Hide loader
+                    $("#loader").hide();
+
+                    if (response.length == 2) {
+                        if (response[0].sql_query) {
+                            console.log("inside sql_query")
+                            $("#chart-container-1").html("<div></div>");
+                            server_sql_query = response[0].sql_query
+                            var sql_query = document.getElementById("sql-query");
+                            sql_query.value = server_sql_query
+                            document.getElementById("userInput").scrollIntoView({ block: "start", behavior: "smooth" });
+                            chatbox.scrollTop = chatbox.scrollHeight;
+                            if (response[1].table_data != null) {
+                                dispData(response[1].table_data)
+                            } else {
+                                update_chat_window(response[1].error_msg)
+                                $("#table-data").empty();
+                            }
+                        } else if (response[0].chart) {
+                            console.log("displaying chart")
+                            dispPlot(response[0].chart)
+                            update_chat_window(response[1].explanation)
+                        }
+                    } else if (response.length == 1) {
+                        if (response[0].chart_lst) {
+                            update_chat_window(response[0].chart_lst)
+                        } else if (response[0].word_mapping) {
+                            word_mapping = response[0].word_mapping
+                            query = "The query could not be generated because of conflict."
+                            for (var key in word_mapping) {
+                                capKey = key.charAt(0).toUpperCase() + key.slice(1);
+                                query += " " + capKey + " can be referred to as "
+                                var table_lst = word_mapping[key]
+                                for (var key_table in table_lst) {
+                                    console.log("key_table:",key_table)
+                                    columns = table_lst[key_table]
+                                    // Iterate over each column in the array
+                                    for (var i = 0; i < columns.length; i++) {
+                                        var capCol = capitalize(columns[i])
+                                        //console.log("capCol:",capCol)
+                                        // Append the lowercase column name to the query
+                                        if (i == columns.length-1) {
+                                            // remove the last comma and add 'and' clause.
+                                            query = query.slice(0, -1) + " and " + capCol
+                                            tableCap = capitalize(key_table)
+                                            query += " in " + tableCap + ". "
+                                        } else {
+                                            query += capCol + ",";
+                                        }
+                                    }
+                                }
+                            }
+                            query += "Please specify the correct selection."
+                            update_chat_window(query)
+                        }
+                        else {
+                            console.log("error in chart")
+                            update_chat_window(response[0].error_msg)
+                        }
+                    }
+                });
+        }
+
+        function capitalize(text) {
+            textLower = text.toLowerCase()
+            textCap = textLower.charAt(0).toUpperCase() + textLower.slice(1);
+            return textCap
+        }
+
+        function update_chat_window(rawText) {
+            var userHtml = '<p class="userText" style="white-space: pre-wrap;"><span>' + rawText + "</span></p>";
+            $("#textInput").val("");
+            $("#chatbox").append(userHtml);
+
+            // Scroll to the last input
+            var chatbox = document.getElementById("chatbox");
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+        $("#textInput").keypress(function (e) {
+            if (e.which == 13 && !e.shiftKey) {
+                e.preventDefault();
+                getBotResponse();
+                toggleSendButton();
+            }
+        });
+
+        $("#sendButton").click(function () {
+            getBotResponse();
+            toggleSendButton();
+        });
+
+        function dispData(sql_data) {
+            // Clear any existing content in the table_data div
+            $("#table-data").empty();
+
+            // Populate the table with the received data
+            var table = $("<table>");
+            var headerRow = $("<tr>");
+
+            // Populate table headers
+            $.each(sql_data[0], function (index, value) {
+                headerRow.append($("<th>").text(value));
+            });
+            table.append(headerRow);
+
+            // Populate table rows
+            $.each(sql_data.slice(1), function (index, row) {
+                var tableRow = $("<tr>");
+                $.each(row, function (index, value) {
+                    tableRow.append($("<td>").text(value));
+                });
+                table.append(tableRow);
+            });
+            // Append the populated table to the table-data div
+            $("#table-data").append(table);
+        }
+        function dispPlot(chart_data) {
+            $("#chart-container-1").html("<div>" + chart_data + "</div>");
+        }
+
+    </script>
+</body>
+
+</html>
