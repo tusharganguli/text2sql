@@ -5,7 +5,4 @@ test.py
 timing.txt
 .DS_Store
 FT_Chat.code-workspace
-__pycache__/rag_prompt.cpython-311.pyc
-__pycache__/chat_backend.cpython-311.pyc
-__pycache__/rag_prompt.cpython-311.pyc
-__pycache__/t2sql.cpython-311.pyc
+__pycache__/
