@@ -1,5 +1,5 @@
 
-from rag_prompt import context,instruction,table_names,table_lst
+from rag_prompt import context,instruction,table_lst,predibase_cntxt
 from rag import Rag
 from sql_connect import SQLConnect
 
@@ -8,18 +8,19 @@ import os
 import re
 import time
 
-#from predibase import PredibaseClient
+from predibase import Predibase, PredibaseClient
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
-#predibase_token = os.environ.get('PREDIBASE_TOKEN') 
+predibase_token = os.environ.get('PREDIBASE_TOKEN') 
 
 class TextToSQL:
     
     def __init__(self):
-        #try:
-        #    self.pc = PredibaseClient(token=predibase_token)
-        #except Exception as e:
-        #    print("Error:", e)
+        try:
+            #self.pc = PredibaseClient(token=predibase_token)
+            self.pb = Predibase(api_token=predibase_token)
+        except Exception as e:
+            print("Error:", e)
         
         self.rag = Rag()
         self.sql_conn = SQLConnect()
@@ -30,9 +31,9 @@ class TextToSQL:
         
     def get_sql_statement(self, question, llm_model="gpt"):
         sql_stmt = ""
-        
+        rag_content = self.rag.get_content(question)
+
         if llm_model == "gpt":
-            rag_content = self.rag.get_content(question)  
             #print("rag content:", rag_content)
             query = self.__create_query(question, rag_content)  
             print("get_sql_statement - Full Query:\n\n", query)  
@@ -40,10 +41,12 @@ class TextToSQL:
             response = self.get_completion(query,model)
             sql_stmt = self.__extract_sql(response)
         else: # we assume it is predibase
-            context = self.__create_context()
-            sql_stmt = self.__get_predibase_response(question,context)
-            
-        #print(response)
+            print("Model Predibase")
+            context = self.__create_predibase_context(rag_content)
+            #sql_stmt = self.__get_predibase_response(question,context)
+            sql_stmt = self.__get_new_pb_response(question,context)
+
+        print("SQL Statement:\n",sql_stmt)
         return sql_stmt
 
     def __create_query(self, question, rag_content):
@@ -65,6 +68,19 @@ class TextToSQL:
 
                 """ 
         return query
+
+    def __create_predibase_context(self, rag_content):
+        
+        #cntxt = instruction + """ 
+        cntxt = """   
+                For the following question please generate a sql statement based on the context. 
+                
+                ### Question : {} 
+        
+                ### Context: """ + predibase_cntxt + """
+
+                """
+        return cntxt
 
     def validate_query(self, query: str) -> dict:
         #print("Validating query")
@@ -240,19 +256,6 @@ class TextToSQL:
                     Retrieve the column names which contain the data in the below query.
                 """
 
-    def __create_context(self):
-        
-        cntxt = instruction + """ 
-                
-                The following is the context.
-
-                ### Context: """ + context + """
-
-                ### Response:
-
-                """
-        return cntxt
-
     def get_completion(self, prompt, model="gpt-3.5-turbo"):
         
         messages = [{"role": "user", "content": prompt}]
@@ -268,10 +271,14 @@ class TextToSQL:
     def __get_predibase_response(self, question, context):
         # we currently assume it is a predibase llm request
         # Since our model was fine-tuned from a Llama-2-7b base, we'll use the shared deployment with the same model type.
-        base_deployment = self.pc.LLM("pb://deployments/llama-2-7b")
-        
+        #base_deployment = self.pc.LLM("pb://deployments/llama-2-7b")
+        base_deployment = self.pc.LLM("pb://deployments/gemma-2b")
+        #base_deployment = self.pc.LLM("pb://deployments/llama-3-8b")
+
         # Now we just specify the adapter to use, which is the model we fine-tuned.
-        model = self.pc.get_model("Llama-2-7b-hf-sql_create_context_v4")
+        #model = self.pc.get_model("Llama-2-7b-hf-sql_create_context_v4")
+        model = self.pc.get_model("gemma-2b-sql_create_context_v4")
+        #model = self.pc.get_model("llama3_8b")
         adapter_deployment = base_deployment.with_adapter(model)
         
         # Recall that our model was fine-tuned using a template that accepts an {instruction}
@@ -282,9 +289,22 @@ class TextToSQL:
               "context": context
             },
             max_new_tokens=256)
-            
+           
         return result.response
 
+    def __get_new_pb_response(self, question, context):
+        # Specify the serverless deployment of the base model which was fine-tuned
+        lorax_client = self.pb.deployments.client("llama-3-8b")
+
+        context = context.format(question)
+        query = "<s>[INST]"+ context +  "[/INST] "
+        print("Final Query:\n",query)
+
+        response = lorax_client.generate(query, adapter_id="llama3_8b/1", max_new_tokens=512).generated_text
+        print("New Predibase response:\n",response)
+
+        return response
+    
     def __extract_sql(self, sql_response):
         start_tag = '```sql'
         end_tag = '```'
