@@ -231,7 +231,21 @@ class TextToSQL:
                         ### Response: 
 
                     """
-        response = self.get_completion(prompt)
+        
+        prompt2 = """
+                        Consider the following sentence and retrieve all unique nouns.
+                        If the nouns are adjacent to each other in the original sentence then consider 
+                        them as a single word in the list. generate a python list with all nounse and
+                        if they are adjacent to each other then consider them in the same word. 
+
+                        ### Query: """ + sentence + """
+
+                        ### Response: 
+
+                    """
+        
+        response = self.get_completion(prompt2)
+        print("Response for unique nouns:",response)
         return response
 
     def __validate(self, query):
