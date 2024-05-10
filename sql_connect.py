@@ -5,10 +5,10 @@ from rag_prompt import table_names
 import pandas as pd
 
 class SQLConnect:
-    def __init__(self):
+    def __init__(self,session):
         try: 
             # Snowflake connection parameters
-            username,password,account,warehouse,database,schema = get_credentials()
+            username,password,account,warehouse,database,schema = get_credentials(session)
         
             self.conn = snowflake.connector.connect( user=username, password=password,
                                                 account=account, warehouse=warehouse,

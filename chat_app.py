@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_caching import Cache
 
 from chat_backend import ChatBackend
@@ -31,11 +31,29 @@ def cleanup():
 # Register delete_object function to be called when the application exits
 atexit.register(cleanup)
 
-index_filename = 'chat.html'
+chat_filename = 'chat.html'
+login_filename = 'login.html'
 
 @app.route("/")
 def home():    
-    return render_template(index_filename)
+    return render_template(login_filename)
+
+@app.route("/chat.html")
+def chat():
+    return render_template(chat_filename)
+
+@app.route("/session_names")
+def get_session_names():    
+    data = cb.get_session_names()
+    return jsonify(data)
+
+@app.route("/set_session")
+def set_session():
+    session_name = request.args.get('session')  
+    print("Session Name:", session_name)  
+    cb.set_session(session_name)
+    #return redirect(url_for('chat'))
+    return "/chat.html"
 
 @app.route("/chat")
 def get_bot_response():    

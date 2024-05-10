@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dataworkz Conversationz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
+
+    <style>
+        .comfortaa-font {
+            margin-top: 12px;
+            font-family: "Comfortaa", sans-serif;
+            font-optical-sizing: auto;
+            font-weight: bolder;
+            font-style: normal;
+            font-size: 32px;
+            color: #4e4d4d;
+        }
+
+        .chat-container {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            height: 650px;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            overflow: auto;
+            height: 500px;
+        }
+
+        .message-input {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .message-input input,
+        .message-input textarea {
+            flex-grow: 1;
+            /* Make the input take up remaining space */
+            margin-right: 10px;
+        }
+
+        .table {
+            max-height: 450px;
+        }
+
+        .table th,
+        .table td {
+            padding: 2px;
+            border: 1px solid #ccc;
+            text-align: left;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            animation: spin 2s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -25px;
+            margin-left: -25px;
+            z-index: 9999;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #chatbox {
+            width: 100%;
+            height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        .userText {
+            background: #ececec;
+            padding: 5px;
+            margin: 5px 5px;
+            font-size: 14px;
+            word-wrap: break-word;
+
+        }
+
+        .form-control:focus {
+            border-color: rgba(0, 0, 0, 0.15);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(0, 0, 0, 0.15);
+        }
+
+        #textInput {
+            height: 80px;
+            width: 400px;
+            margin-right: 10px;
+            resize: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a href="https://www.dataworkz.com/" target="_blank"><img src="/static/cropped-dw_logo-1.png"
+                        alt="Dataworkz"></a>
+            </div>
+            <div class="comfortaa-font text-center">
+                <p>Conversationz</p>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h6 class="panel-title">Choose Session!</h6>
+                        <select id="sessionDropdown" class="form-control"></select>
+                        <button id="selectButton" class="btn btn-primary">Select</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <script>
+
+        // Define the function to populate the dropdown
+        function populateSessionDropdown(session_names) {
+            $("#sessionDropdown").empty();
+
+            // Iterate over the session names and populate the dropdown
+            session_names.forEach(function(session_name) {
+                // Create a new option element
+                var option = $("<option></option>").attr("value", session_name).text(session_name);
+                // Append the option to the dropdown
+                $("#sessionDropdown").append(option);
+            });
+        }
+        // Perform a GET request to retrieve session names when the page is loaded
+        $(document).ready(function() {
+            $.get("/session_names")
+                .done(function(session_names) {
+                    // Call the function to populate the dropdown
+                    populateSessionDropdown(session_names);
+                })
+                .fail(function() {
+                    console.error("Failed to retrieve session names.");
+                });
+        });
+
+        $("#selectButton").click(function () {
+            var selectedSession = $("#sessionDropdown").val();
+    
+            $.get("/set_session", { session: selectedSession })
+                .done(function(response) {
+                    console.log("inside set_session")
+                    console.log(response)
+                    // Redirect to chat.html
+                    window.location.href = response;
+                })
+                .fail(function() {
+                    console.error("Failed to retrieve session names.");
+                });
+        });
+
+    </script>
+</body>
+
+</html>

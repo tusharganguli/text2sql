@@ -3,19 +3,29 @@
 from t2sql import TextToSQL
 from sql_connect import SQLConnect
 from plot import GenPlot
+from security import get_session_names
 
 class ChatBackend:
     def __init__(self, app_cache):
         self.gplot = GenPlot() 
-        self.t2sql = TextToSQL()
-        self.sql_conn = SQLConnect()
         self.cache = app_cache
+        self.t2sql = None
+        self.sql_conn = None
 
+    # lazy initialization as we want the session name for initializing the objects.
+    def set_session(self, session_name):
+        self.t2sql = TextToSQL(session_name)
+        self.sql_conn = SQLConnect(session_name)
+    
     def __del__(self):
         del self.gplot
         del self.t2sql
         del self.sql_conn
 
+    def get_session_names(self):
+        return get_session_names()
+
+        
     def get_data(self, user_query):
         stored_response = self.cache.get("response")
         self.cache.set("response","")

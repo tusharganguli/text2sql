@@ -15,7 +15,7 @@ predibase_token = os.environ.get('PREDIBASE_TOKEN')
 
 class TextToSQL:
     
-    def __init__(self):
+    def __init__(self, session):
         try:
             #self.pc = PredibaseClient(token=predibase_token)
             self.pb = Predibase(api_token=predibase_token)
@@ -23,7 +23,7 @@ class TextToSQL:
             print("Error:", e)
         
         self.rag = Rag()
-        self.sql_conn = SQLConnect()
+        self.sql_conn = SQLConnect(session)
     
     def __del__(self):
         del self.rag
