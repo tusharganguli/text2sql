@@ -1,15 +1,16 @@
 
 import snowflake.connector
-from security import get_credentials
-from rag_prompt import table_names
 import pandas as pd
+
+from source.security import get_credentials
+from source.rag_prompt import table_names
 
 class SQLConnect:
     def __init__(self,session):
         try: 
             # Snowflake connection parameters
             username,password,account,warehouse,database,schema = get_credentials(session)
-        
+
             self.conn = snowflake.connector.connect( user=username, password=password,
                                                 account=account, warehouse=warehouse,
                                                 database=database, schema=schema
