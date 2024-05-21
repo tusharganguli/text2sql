@@ -1,7 +1,7 @@
 
 import json
 
-json_file = "../data/credential.json"
+json_file = "./data/credential.json"
 
 def get_credentials(session,filename=json_file):
 
@@ -19,7 +19,7 @@ def get_credentials(session,filename=json_file):
 
     return [username,password,account,warehouse,database,schema]
 
-def get_session_names(filename=json_file):
+def get_sessions(filename=json_file):
 
     # Load the JSON file
     with open(filename) as f:

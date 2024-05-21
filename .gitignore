@@ -6,3 +6,5 @@ timing.txt
 .DS_Store
 FT_Chat.code-workspace
 __pycache__/
+.vscode/launch.json
+tmp/

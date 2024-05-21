@@ -1,8 +1,8 @@
 
-from rag_prompt import context,instruction,table_lst,predibase_cntxt
-from rag import Rag
-from sql_connect import SQLConnect
-
+from source.prompt import context,instruction,predibase_cntxt
+from source.rag import Rag
+from source.sql_connect import SQLConnect
+from source.prompt import Prompt
 import openai
 import os
 import re
@@ -15,15 +15,17 @@ predibase_token = os.environ.get('PREDIBASE_TOKEN')
 
 class TextToSQL:
     
-    def __init__(self, session):
+    def __init__(self):
         try:
             #self.pc = PredibaseClient(token=predibase_token)
-            self.pb = Predibase(api_token=predibase_token)
+            #self.pb = Predibase(api_token=predibase_token)
+            pass
         except Exception as e:
             print("Error:", e)
         
+        self.prompt = Prompt()
         self.rag = Rag()
-        self.sql_conn = SQLConnect(session)
+        self.sql_conn = SQLConnect()
     
     def __del__(self):
         del self.rag
@@ -35,7 +37,7 @@ class TextToSQL:
 
         if llm_model == "gpt":
             #print("rag content:", rag_content)
-            query = self.__create_query(question, rag_content)  
+            query = self.prompt.create_query(question, rag_content)  
             print("get_sql_statement - Full Query:\n\n", query)  
             model = "gpt-4-0125-preview"
             response = self.get_completion(query,model)
@@ -48,26 +50,6 @@ class TextToSQL:
 
         print("SQL Statement:\n",sql_stmt)
         return sql_stmt
-
-    def __create_query(self, question, rag_content):
-        
-        query = instruction + """ 
-                
-                ### Question: """ + question + """
-                
-                The following is the context.
-
-                ### Context: """ + context + """
-                
-                The following is additional information to be taken into 
-                account:
-                
-                ### Information: """ + rag_content + """
-
-                ### Response:
-
-                """ 
-        return query
 
     def __create_predibase_context(self, rag_content):
         
@@ -103,10 +85,11 @@ class TextToSQL:
                 # Record the start time
                 #start_time = time.time()
 
-                for table_schema in table_lst:
+                table_schemas = self.prompt.get_table_schemas()
+                table_names = self.prompt.get_table_names()
+                for table_name,table_schema in zip(table_names,table_schemas):
                     column_names = self.__get_column_names(table_schema)
                     #print("Column Names:",column_names)
-                    table_name = self.__get_table_name(table_schema)
                     #matched_columns = self.sql_conn.match_data(w,table_name, column_names)
                     matched_columns = self.sql_conn.match_data2(w,table_name, column_names)
                     #print("Matched Columns:", matched_columns)        
@@ -165,11 +148,16 @@ class TextToSQL:
         #print("Final word dict:", word_dict_copy)
         return word_dict_copy
 
-    def __get_column_names(self, table_name):
+    def __get_column_names(self, table_schema):
         # Regular expression pattern to match column names, any subsequent addition of a different
         # column type should be catered in this pattern
-        column_pattern = r'([A-Za-z_]+)\s+(?:NUMBER|VARCHAR|TIMESTAMP_NTZ|BOOLEAN)'
-        column_names = re.findall(column_pattern, table_name)
+
+        #column_pattern = r'([A-Za-z_]+)\s+(?:NUMBER|VARCHAR|TIMESTAMP_NTZ|BOOLEAN)'
+        #column_names = re.findall(column_pattern, table_schema)
+        
+        # Use a regular expression to match column names preceded by the opening parenthesis 
+        # or a comma and space, and followed by a space and any word characters
+        column_names = re.findall(r'(?:\(|,\s*)(\b[A-Za-z_0-9]+\b)\s+\w+', table_schema)
         return column_names
     
     def __get_table_name(self, table_schema):
@@ -183,9 +171,10 @@ class TextToSQL:
             table_name = match.group(1)
         return table_name
 
-    def __column_match(self, word):    
-        for table in table_lst:
-            column_names = self.__get_column_names(table)
+    def __column_match(self, word): 
+        table_schemas = self.prompt.get_table_schemas()   
+        for table_schema in table_schemas:
+            column_names = self.__get_column_names(table_schema)
             #print("Column Names for column match:",column_names)
             is_subword = any(word.lower() in col.lower() for col in column_names)
             if is_subword == True:
@@ -243,7 +232,22 @@ class TextToSQL:
                         ### Response: 
 
                     """
-        
+
+        prompt3 = """
+                        Given a sentence, I want to extract all unique nouns. 
+                        If two nouns are adjacent to each other, they should be combined 
+                        into a single word. For example, in the sentence 
+                        "What zip codes should I market to if I want to reach all 
+                        customers in Knoxville, Tennessee?", 
+                        the desired output would be ['zip codes', 'customers', 'Knoxville, Tennessee']. 
+                        `Please implement this behavior.
+
+
+                        ### Query: """ + sentence + """
+
+                        ### Response: 
+
+                    """        
         response = self.get_completion(prompt2)
         print("Response for unique nouns:",response)
         return response

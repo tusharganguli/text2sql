@@ -5,7 +5,7 @@ import pandas as pd
 import re
 import json
 
-chart_types_filename = "chart_types.json"
+chart_types_filename = "./data/chart_types.json"
 
 class GenPlot:
     

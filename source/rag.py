@@ -1,5 +1,6 @@
 
 import os
+import json
 from llama_index.core import (
     VectorStoreIndex, StorageContext, load_index_from_storage
 )
@@ -9,6 +10,8 @@ from llama_index.core import Settings
 
 from llama_index.readers.file.rtf import RTFReader
 from llama_index.readers.json import JSONReader
+
+from flask import session
 
 import time
 import threading
@@ -46,16 +49,18 @@ class Rag:
     root_dir = "./data"
     storage_dir = root_dir + "/index_storage"
     
-    instruction_file = root_dir + "/rag_info.rtf"
+    instruction_file = root_dir + "/rag_info.json"
     instruction_storage_dir = storage_dir + "/instruction_index"
     
     glossary_file = root_dir + "/glossary.json"
     glossary_storage_dir = storage_dir + "/glossary_index"
     
     def __init__(self):
+
+        self.__create_tmp_dir()
         self._instruction_index = self.load_index(self.instruction_file, 
                                                    self.instruction_storage_dir,
-                                                   "rtf" )
+                                                   "json" )
         self._glossary_index = self.load_index(self.glossary_file, 
                                              self.glossary_storage_dir,
                                              "json" )
@@ -70,19 +75,43 @@ class Rag:
         if hasattr(self, '_file_monitoring_thread') and self._file_monitoring_thread.is_alive():
             self._file_monitoring_thread.join()
     
+    def __create_tmp_dir(self):
+
+        dir_path = './tmp'
+
+        # Check if the directory exists
+        if not os.path.exists(dir_path):
+            # If not, create it
+            os.makedirs(dir_path)
+
     def load_index(self, filename, storage_dir, reader_type):
 
         try:
+            # Load the JSON file
+            with open(filename, "r") as f:
+                data = json.load(f)
+            
+            session_name = session.get('session')
+
+            session_data = ""
+            if session_name in data:
+                # Extract the data under the specific key
+                session_data = data[session_name]
+
+            tmp_filename = "./tmp/" + session_name+".json"
+            # Save the specific key data to a new JSON file
+            with open(tmp_filename, "w") as f:
+                json.dump(session_data, f)
+
             # check if storage already exists
             #if not os.path.exists(storage_dir):
             # load the documents and create the index
-            if reader_type == "rtf":
-                reader = RTFReader()
-            elif reader_type == "json":
-                reader = JSONReader()
+            reader = JSONReader()
             
-            documents = reader.load_data(filename)
+
+            documents = reader.load_data(tmp_filename)
             index = VectorStoreIndex.from_documents(documents)
+
             # store it for later
             #index.storage_context.persist(persist_dir=storage_dir)
             #else:

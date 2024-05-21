@@ -1,0 +1,7 @@
+{
+    "Franklin Templeton" : {
+    	"The column AS_OF_DATE is a snowflake TIMESTAMP_NTZ format yyyy-MM-dd HH:mm:ss.": "",
+		"PCT_ACTIVE_RISK is percentage contribution to active risk.": "",
+		"In table POSITIONS_AND_BENCHMARK, PCT_CR_TO_TOTAL_TRACKING_ERROR is the Percentage of contributed risk to total tracking error.": ""
+    }
+}
