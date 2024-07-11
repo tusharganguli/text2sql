@@ -27,22 +27,28 @@ class SQLConnect:
     def __del__(self):
         self.conn.close()
 
-    def get_sql_data(self, sql_stmt):                
-        column_names = []
-        rows = []
-
+    def get_sql_data(self, sql_stmt_lst):                
+        results = []
+        #print("SQL stmt list:",sql_stmt_lst)
         try:
-            cur = self.conn.cursor()
-            cur.execute(sql_stmt)
-            column_names = [desc[0] for desc in cur.description]    
-            rows = cur.fetchmany(1000)
-            cur.close()            
+            for sql_stmt in sql_stmt_lst:
+                cur = self.conn.cursor()
+                cur.execute(sql_stmt)
+                column_names = [desc[0] for desc in cur.description]    
+                rows = cur.fetchmany(1000)
+                cur.close()
+                result = {
+                    'columns': column_names,
+                    'rows': rows
+                }           
+                results.append(result) 
         except Exception as e:
             # Handle other types of errors
-            print("Error in get_sql_data:",e)
+            print("Error in get_sql_data:\n",e)
+            print("Query:\n",sql_stmt)
             raise Exception("Error in retrieving data.")
         
-        return column_names,rows
+        return results
     
     def match_data(self, word, table_name, column_names):
         

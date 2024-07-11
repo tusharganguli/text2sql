@@ -1,91 +1,36 @@
 
 import os
 import json
-from llama_index.core import (
-    VectorStoreIndex, StorageContext, load_index_from_storage
-)
-
-from llama_index.llms.openai import OpenAI
-from llama_index.core import Settings
-
-from llama_index.readers.file.rtf import RTFReader
-from llama_index.readers.json import JSONReader
-
 from flask import session
-
-import time
-import threading
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from llama_index.core import VectorStoreIndex,Settings,Document
+from llama_index.llms.openai import OpenAI
 
 Settings.llm = OpenAI(temperature=0, model="gpt-3.5-turbo")
 
 class Rag:
 
-    class MyHandler(FileSystemEventHandler):
-
-        def __init__(self, rag_instance):
-            self.rag_instance = rag_instance
-
-        def on_modified(self, event):
-            with open(event.src_path, 'r') as file:
-                self.rag_instance.glossary_index = self.rag_instance.load_index(self.rag_instance.glossary_file, 
-                                             self.rag_instance.glossary_storage_dir, "json" )
-                # Do something with the updated data
-
-    def __watch_file(self,path):
-        event_handler = Rag.MyHandler(self)
-        observer = Observer()
-        observer.schedule(event_handler, path, recursive=True)
-        observer.start()
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            observer.stop()
-        observer.join()
-
-
     root_dir = "./data"
     storage_dir = root_dir + "/index_storage"
-    
-    instruction_file = root_dir + "/rag_info.json"
-    instruction_storage_dir = storage_dir + "/instruction_index"
-    
     glossary_file = root_dir + "/glossary.json"
     glossary_storage_dir = storage_dir + "/glossary_index"
     
     def __init__(self):
 
         self.__create_tmp_dir()
-        self._instruction_index = self.load_index(self.instruction_file, 
-                                                   self.instruction_storage_dir,
-                                                   "json" )
-        self._glossary_index = self.load_index(self.glossary_file, 
-                                             self.glossary_storage_dir,
-                                             "json" )
+        self._glossary,self._instruction,self._dashboard = self.load_data(self.glossary_file)
         
-        # Start file monitoring in a separate thread
-        self._file_monitoring_thread = threading.Thread(target=self.__watch_file, args=(self.glossary_file,))
-        self._file_monitoring_thread.daemon = True
-        self._file_monitoring_thread.start()
-
+        
     def __del__(self):
-        # Cleanup tasks when the object is destroyed
-        if hasattr(self, '_file_monitoring_thread') and self._file_monitoring_thread.is_alive():
-            self._file_monitoring_thread.join()
-    
+        del self._glossary_index
+
     def __create_tmp_dir(self):
-
         dir_path = './tmp'
-
         # Check if the directory exists
         if not os.path.exists(dir_path):
             # If not, create it
             os.makedirs(dir_path)
 
-    def load_index(self, filename, storage_dir, reader_type):
-
+    def load_data(self, filename):
         try:
             # Load the JSON file
             with open(filename, "r") as f:
@@ -98,43 +43,93 @@ class Rag:
                 # Extract the data under the specific key
                 session_data = data[session_name]
 
-            tmp_filename = "./tmp/" + session_name+".json"
-            # Save the specific key data to a new JSON file
-            with open(tmp_filename, "w") as f:
-                json.dump(session_data, f)
-
-            # check if storage already exists
-            #if not os.path.exists(storage_dir):
-            # load the documents and create the index
-            reader = JSONReader()
+            #if session_data == "":
+            #    index = VectorStoreIndex.from_documents(documents=[])
+            #    return index
             
+            #print("Session Data:\n",session_data)
+            glossary = ""
+            if "Glossary" in session_data:
+                glossary_dict = session_data["Glossary"]
+                for k,v in glossary_dict.items():
+                    glossary += k + ":" + v + "\n"
+            instruction = ""
+            if "AdditionalInstructions" in session_data:
+                instruction_dict = session_data["AdditionalInstructions"]
+                for k,v in instruction_dict.items():
+                    #print("instruction k:{},v:{}".format(k,v))
+                    instruction += v + "\n\n"
+            dashboard = []
+            if "Dashboard" in session_data:
+                dashboard = session_data["Dashboard"]
 
-            documents = reader.load_data(tmp_filename)
-            index = VectorStoreIndex.from_documents(documents)
-
-            # store it for later
-            #index.storage_context.persist(persist_dir=storage_dir)
-            #else:
-                # load the existing index
-            #    storage_context = StorageContext.from_defaults(persist_dir=storage_dir)
-            #    index = load_index_from_storage(storage_context)
         except Exception as e:
             print("Error in Rag:__init__:", e)
-            raise Exception("Error retrieving user specific content.")
+            raise Exception("Error retrieving user json content.")
         
-        return index
+        print("Glossary:",glossary)
+        print("Additional Instruction",instruction)
+        #print("Dashboard:",dashboard)
+
+        return glossary,instruction,dashboard
         
     def get_content(self, query_str):
-        retriever = self._instruction_index.as_retriever(similarity_top_k=1)
-        retrieved_nodes = retriever.retrieve(query_str)
+
+        #print("Query String in rag.get_content:",query_str)
         
-        content = retrieved_nodes[0].text + "\n\n\n"
+        #documents = []
+        #for dashboard in self._dashboard:
+        #    for k,v in dashboard.items():
+        #        if k == "Name":  # Check if the name is not None or empty
+        #            documents.append(Document(text=v))
         
-        retriever = self._glossary_index.as_retriever(similarity_top_k=1)
-        retrieved_nodes = retriever.retrieve(query_str)
+        #print("Glossary documents:\n",documents)
         
-        content += retrieved_nodes[0].text
-        return content  
+        #index = VectorStoreIndex.from_documents(documents)
+        #retriever = index.as_retriever(similarity_top_k=1)
+        #retrieved_key = retriever.retrieve(query_str)
+        
+        #print("Retrieved key:", retrieved_key[0].text)
+
+        static_content = self._glossary + "\n\n\n" + self._instruction + "\n\n\n"
+        
+        instruction = None
+        #print("self._dashboard:\n",self._dashboard)
+        query_lower = query_str.lower()
+
+        for dashboard in self._dashboard:
+            #print("dashboard[Name]:\n",dashboard["Name"])
+            #print("Query:\n",query_str)
+            dashboard_words = dashboard["Name"].split()
+            match = True    
+            for word in dashboard_words:
+                if word.lower() not in query_lower:
+                    match = False
+                    break
+            if match == True:
+                instruction = dashboard["Instruction"]
+                #print("selected dashboard:\n",dashboard)
+                break
+        #print("Instruction:\n",instruction)
+        
+        #dashboard = self._dashboard[retrieved_key[0].text.strip('"')]
+        #print("Glossary Content:\n",glossary_content)
+        instruction_lst = []
+        if isinstance(instruction, dict):
+            instruction_lst = list(instruction.values())
+        else:
+            instruction_lst = [instruction]
+        #print("Instruction List:\n",instruction_lst)
+
+        return static_content, instruction_lst
+    
+    def get_dashboard_lst(self):
+        dashboard_lst = []
+        for dashboard in self._dashboard:
+            name = dashboard["Name"]
+            #description = dashboard["Description"]
+            dashboard_lst.append(name)
+        return dashboard_lst
     
     def glossary_match(self, word):
         import json

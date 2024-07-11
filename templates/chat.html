@@ -222,7 +222,8 @@
                             $("#chart-container-1").html("<div></div>");
                             server_sql_query = response[0].sql_query
                             var sql_query = document.getElementById("sql-query");
-                            sql_query.value = server_sql_query
+                            formatter = "\n\n---------------------------------------\n\n"
+                            sql_query.value = server_sql_query.join(formatter)
                             document.getElementById("userInput").scrollIntoView({ block: "start", behavior: "smooth" });
                             chatbox.scrollTop = chatbox.scrollHeight;
                             if (response[1].table_data != null) {
@@ -267,6 +268,8 @@
                             }
                             query += "Please specify the correct selection."
                             update_chat_window(query)
+                        } else if (response[0].dashboard_lst) {
+                            update_chat_window(response[0].dashboard_lst)
                         }
                         else {
                             console.log("error in chart")

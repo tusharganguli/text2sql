@@ -1,58 +1,55 @@
 {
     "Franklin Templeton" : {
-    	"securities": ["tickers"],
-    	"sectors": ["gics sectors"],
-    	"tracking error": ["active risk"],
-    	"user": ["users refer to the data in ACCT in table POSITIONS_AND_BENCHMARK"],
-    	"lowest level factors": ["In table FACTORS, while calculating lowest level factors present in RISK_SOURCE, consider lowest level factors related to 'Common Factor Risk' in FACTOR_PARENT"],
-    	"details": ["for generating details of a specific ACCT use all table schemas and foreign key relationship"],
-    	"personal contribution" : ["it is the active specific contribution in the table positions and benchmark"],
-    	"account B": ["consider the ACCT name as dummy_acct_B"],
-    	"account A": ["consider the ACCT name as dummy_acct_A"],
-    	"last n months" : ["n is any number here. retrieve the current date, use to to get the current month, calculate the date for month-n months back call it start date, then use the range between the  start date and current date"]
+    	"Glossary": {
+    	"securities": "tickers",
+    	"sectors": "gics sectors",
+    	"tracking error": "active risk",
+    	"user": "users refer to the data in ACCT in table POSITIONS_AND_BENCHMARK",
+    	"lowest level factors": "In table FACTORS, while calculating lowest level factors present in RISK_SOURCE, consider lowest level factors related to 'Common Factor Risk' in FACTOR_PARENT",
+    	"details": "for generating details of a specific ACCT use all table schemas and foreign key relationship",
+    	"personal contribution" : "it is the active specific contribution in the table positions and benchmark",
+    	"account B": "consider the ACCT name as dummy_acct_B",
+    	"account A": "consider the ACCT name as dummy_acct_A",
+    	"last n months" : "n is any number here. retrieve the current date, use to to get the current month, calculate the date for month-n months back call it start date, then use the range between the  start date and current date"
+		},
+		"AdditionalInstructions": {
+			"1": "The column AS_OF_DATE is a snowflake TIMESTAMP_NTZ format yyyy-MM-dd HH:mm:ss.",
+		"2": "PCT_ACTIVE_RISK is percentage contribution to active risk.",
+		"3": "In table POSITIONS_AND_BENCHMARK, PCT_CR_TO_TOTAL_TRACKING_ERROR is the Percentage of contributed risk to total tracking error."
+		}
 	},
-	"US Zip Code" : {
-		"Land Area (square miles) - Created for statistical purposes only" : "ALAND_SQMI",
- 		"User identification number": "USER_ID",
- 		"User's ZIP code": "ZIP_CODE",
-	    "Name of the metropolitan/micropolitan statistical area": "METROPOLITAN_MICROPOLITAN_STATISTICAL_AREA",
-	    "FIPS code for the county": "FIPS_COUNTY_CODE",
-	    "CBSA code": "CBSA_CODE",
-	    "Equivalent county name": "COUNTY_COUNTY_EQUIVALENT",
-	    "Date of last update": "UPDATED_ON",
- 		"Name of the state": "STATE_NAME",
-	    "Title of the metropolitan division": "METROPOLITAN_DIVISION_TITLE",
-    	"Code of the metropolitan division": "METRO_DIVISION_CODE",
-    	"FIPS code for the state": "FIPS_STATE_CODE",
-    	"CSA code": "CSA_CODE",
-    	"Title of the CSA": "CSA_TITLE",
-    	"Title of the CBSA": "CBSA_TITLE",
-    	"Indicates if the county is central or outlying": "CENTRAL_OUTLYING_COUNTY",
-    	"CBSA associated with the ZIP code": "CBSA",
-    	"Preferred USPS state for the ZIP code": "USPS_ZIP_PREF_STATE",
-    	"Preferred USPS city for the ZIP code": "USPS_ZIP_PREF_CITY",
-    	"Ratio of business activities": "BUS_RATIO",
-    	"ZIP code": "ZIP",
-    	"Ratio of residential properties": "RES_RATIO",
-    	"Ratio of other properties": "OTH_RATIO",
-    	"Total ratio": "TOT_RATIO",
-    	"HU10 number": "HU10",
-    	"Area of land in square miles": "ALAND_SQMI",
-    	"Area of land": "ALAND",
-    	"GEOID": "GEOID",
-    	"Area of water in square miles": "AWATER_SQMI",
-    	"USPS code": "USPS",
-    	"County name": "NAME",
-    	"Population in 2010": "POP10",
-    	"ANSI code": "ANSICODE",
-    	"Longitude": "INTPTLONG",
-    	"Area of water": "AWATER",
-    	"Latitude": "INTPTLAT",
-    	"County": "COUNTY",
-    	"Tract": "TRACT"
+	"Opportunity": {
+		"Dashboard": {
+		"Name": "Opportunity types", 
+		"Description": "This view presents dashboard for different opportunity types.",
+		"Instruction": "Sum of Amount for opening balance where opening balance corresponds to the last modified date as sept 1st 2022. Sum of amount for closing balance where closing balance corresponds to the  closed column date as sept 1st 2022. sum of amount for new opportunities where new opportunities corresponds to 'opportunity identified' in opportunity_stage column and created_date column is sept 1st 2022. sum of amount for closed won where closed won corresponds to 'closed won' in opportunity_stage column and closed column date is sept 1st 2022. sum of amount for closed lost where closed lost corresponds to 'closed lost' in opportunity_stage column and closed date is sept 1st 2022. consider the sum of amount in a separate column."}
 	},
-	"qqOpportunity": {
-		"Opportunity dashboard" : "If the query is asking about the opportunity dashboard then retrieve the following columns, ",
-		"Open Opportunity": "Last modified date is less than closed date and the current date is greater than modified date and current date is less than closed date."
-	}
+	"Opportunity Running": {
+		"AdditionalInstructions" : {
+			"1": "include dates in the sql query only if the question is related to date or time. Use the format yyyy-MM-dd for any date related query.",
+			"2": "If the instruction refers to a date range and no date range is specified then take the earliest created date and the latest last modified date as the date range.",
+			"3": "LAG function should not appear outside of SELECT, QUALIFY, and ORDER BY clauses."
+		},
+		"Dashboard": [
+			{
+				"Name": "Opportunity trends",
+				"Description": "View for different opportunity trends.",
+				"Instruction": "Use only the following instruction to generate the sql statement: The final output should be in two columns. The first column will be named 'Quarter'. To calculate quarters for each year, consider Q1 for months 1 to 3, Q2 for months 4 to 6, Q3 for months 7 to 9 and Q4 for months 10 to 12. The quarters will be named in the following format: If it is the second quarter of 2024 then the name will be 'Q2_2024'. The second column will be named Amount whose value will be calculated for each quarter as the sum of the Amount of all opportunities whose last modified dates fall in that quarter. Ensure the SQL groups by year and quarter separately to correctly aggregate the amounts."
+			},
+			{
+				"Name": "Opportunity types",
+				"Description": "View for different opportunity types.",
+				"Instruction": 
+				{
+					"1": "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Open Opportunities'. The second column will be named Amount whose value will be calculated as the Sum of Amount where the created date is less than or equal to the start date of the date range and the running date is equal to the start date of the date range.", 
+					"2" : "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'New Opportunities'. The second column will be named Amount and will be calculated as follows, for each opportunity select the entry whose created date and last modified date are between the date range and last modified date is the latest date, calculate the sum of Amount of all the entries.", 
+					"3" : "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Closed Won'. The second column will be named Amount whose value will be calculated as the Sum of Amount where 'Opportunity Stage' is equal to 'Closed Won' and running date is between the date range.",
+					"4": "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Closed Lost'. The second column will be named Amount whose value will be calculated as the sum of amount where 'Opportunity Stage' is equal to 'Closed Lost' and running date is between the date range.",
+					"5": "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Closing Balance'. The second column will be named Amount whose value will be calculated as the Sum of Amount where the created date is less than or equal to the end date of the date range and the running date is equal to the end date of the date range.",
+					"6": "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Pushed Calculation'. The second column will be named Amount whose value will be calculated in the following way: for the date range for each opportunity id, First retrieve data where last modified date is between the date range. Then select all rows where the closed date is greater than the closed date in the previous row for a specific opportunity id. calculate sum of amount across all opportunity ids.",
+					"7": "The final output should be in two columns. The first column will be named Opportunity type which will have the value 'Pulled Calculation'. The second column will be named Amount whose value will be calculated in the following way: for the date range for each opportunity id retrieve rows where last modified date is between the date range and closed date is less than the closed date in the previous row for a specific opportunity id. calculate sum of amount across all opportunity ids. do not group by last modified date"
+				}
+			}
+		]
+	} 
 }
